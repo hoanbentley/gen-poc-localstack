@@ -21,6 +21,7 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -30,9 +31,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class LocalStackIT {
 
     @Container
-    public static LocalStackContainer localStackContainer = new LocalStackContainer(DockerImageName.parse("localstack/localstack:latest"))
+    public static LocalStackContainer localStackContainer = new LocalStackContainer(DockerImageName.parse("localstack/localstack:1.0.0"))
             .withServices(LocalStackContainer.Service.S3)
-            .waitingFor(Wait.forLogMessage(".*Ready.*", 1));
+            .waitingFor(Wait.forLogMessage(".*Ready.*", 1))
+            .withStartupTimeout(Duration.ofMinutes(3));
 
     private static S3Client s3Client;
 
