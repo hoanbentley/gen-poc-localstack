@@ -46,6 +46,7 @@ public class LocalStackIT {
                         AwsBasicCredentials.create("dev", "dev")))
                 .region(Region.US_EAST_1)
                 .endpointOverride(localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3))
+                .forcePathStyle(true)
                 .build();
         log.info("S3 Client setup completed with endpoint: {}", localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3));
     }
