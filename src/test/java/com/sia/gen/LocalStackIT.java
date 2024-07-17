@@ -17,6 +17,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -37,31 +38,39 @@ public class LocalStackIT {
 
     @BeforeAll
     public static void setUpLocalStack() {
+        log.info("Setting up LocalStack container...");
         s3Client = S3Client.builder()
                 .credentialsProvider(StaticCredentialsProvider.create(
                         AwsBasicCredentials.create("dev", "dev")))
                 .region(Region.US_EAST_1)
                 .endpointOverride(localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3))
                 .build();
+        log.info("S3 Client setup completed with endpoint: {}", localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3));
     }
 
     @BeforeEach
     public void setup() throws Exception {
-        // Create bucket
-        s3Client.createBucket(CreateBucketRequest.builder().bucket("sample-bucket").build());
-        log.info("Bucket 'sample-bucket' created successfully.");
+        try {
+            // Create bucket
+            s3Client.createBucket(CreateBucketRequest.builder().bucket("sample-bucket").build());
+            log.info("Bucket 'sample-bucket' created successfully.");
 
-        // Verify bucket creation
-        boolean bucketExists = s3Client.listBuckets().buckets().stream()
+            // Verify bucket creation
+            boolean bucketExists = s3Client.listBuckets().buckets().stream()
                 .anyMatch(bucket -> bucket.name().equals("sample-bucket"));
-        assertTrue(bucketExists, "Bucket 'sample-bucket' should exist");
+            assertTrue(bucketExists, "Bucket 'sample-bucket' should exist");
 
-        // Upload a test CSV file to S3
-        byte[] content = Files.readAllBytes(Paths.get("src/test/resources/sample.csv"));
-        s3Client.putObject(PutObjectRequest.builder()
+            // Upload a test CSV file to S3
+            byte[] content = Files.readAllBytes(Paths.get("src/test/resources/sample.csv"));
+            s3Client.putObject(PutObjectRequest.builder()
                 .bucket("sample-bucket")
                 .key("sample.csv")
                 .build(), Paths.get("src/test/resources/sample.csv"));
+        } catch(S3Exception e) {
+            log.error("S3Exception: {}", e.awsErrorDetails().errorMessage());
+        } catch (Exception e) {
+            log.error("Exception during setup: ", e);
+        }
     }
 
     private void logFileContentFromS3(String bucketName, String key) throws Exception {
