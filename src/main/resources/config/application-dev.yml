@@ -11,7 +11,7 @@ logging:
     ROOT: INFO
     org.hibernate.SQL: DEBUG
     com.sia.gen: DEBUG
-    # software.amazon.awssdk: DEBUG
+    software.amazon.awssdk: DEBUG
 
 server:
   error:
