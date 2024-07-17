@@ -31,8 +31,7 @@ public class LocalStackIT {
 
     @Container
     public static LocalStackContainer localStackContainer = new LocalStackContainer(DockerImageName.parse("localstack/localstack:0.11.3"))
-            .withServices(LocalStackContainer.Service.S3)
-            .waitingFor(Wait.forLogMessage(".*Ready.*", 1));
+            .withServices(LocalStackContainer.Service.S3);
 
     private static S3Client s3Client;
 
