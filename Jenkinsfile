@@ -1,41 +1,16 @@
 #!groovy
-pipeline {
-    agent {
-       docker {
-            image 'maven:3.9.5-eclipse-temurin-17'
-            args '--network host -u root -v /var/run/docker.sock:/var/run/docker.sock'
-       }
-    }
-    stages {
+@Library(['jenkins-shared-pipelines@poc-testcontainers']) _
 
-        /*stage('Build') {
-            steps {
-                sh 'mvn -B -DskipTests clean package'
-            }
-        }*/
+appData=[
+  binaryPath : "gen-poc-localstack/target",
+  jdkVersion: "17",
+  mavenTestGoals: "test"
+]
 
-        stage('Test') {
-            steps {
-                sh 'mvn test'
-            }
-
-            post {
-                always {
-                    junit 'target/surefire-reports/*.xml'
-                }
-            }
-        }
-
-        stage('Push') {
-            steps {
-                echo 'Pushing'
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                echo 'Deploying'
-            }
-        }
-    }
+if (env.BRANCH_NAME == "master") {
+    echo "Production releases should go through release pipeline"
+} else if (env.BRANCH_NAME == "integration") {
+    promote(appData)
+} else {
+    dev_mavenTestContainers(appData)
 }
