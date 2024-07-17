@@ -33,7 +33,6 @@ public class LocalStackIT {
     @Container
     public static LocalStackContainer localStackContainer = new LocalStackContainer(DockerImageName.parse("localstack/localstack:latest"))
         .withServices(LocalStackContainer.Service.S3)
-        .withExposedPorts(4566)
         .waitingFor(Wait.forLogMessage(".*Ready.*", 1))
         .withStartupTimeout(Duration.ofMinutes(5));
 
