@@ -32,30 +32,37 @@ public class LocalStackIT {
 
     @Container
     public static LocalStackContainer localStackContainer = new LocalStackContainer(DockerImageName.parse("localstack/localstack:latest"))
-            .withServices(LocalStackContainer.Service.S3)
-            .withExposedPorts(4566)
-            .waitingFor(Wait.forLogMessage(".*Ready.*", 1));
+        .withServices(LocalStackContainer.Service.S3)
+        .withExposedPorts(4566)
+        .waitingFor(Wait.forLogMessage(".*Ready.*", 1))
+        .withStartupTimeout(Duration.ofMinutes(5));
 
     private static S3Client s3Client;
 
     @BeforeAll
     public static void setUpLocalStack() {
         log.info("Setting up LocalStack container...");
+        localStackContainer.start();
+        log.info("LocalStack container started.");
         s3Client = S3Client.builder()
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create("dev", "dev")))
-                .region(Region.US_EAST_1)
-                .endpointOverride(localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3))
-                .forcePathStyle(true)
-                .build();
+            .credentialsProvider(StaticCredentialsProvider.create(
+                AwsBasicCredentials.create("dev", "dev")))
+            .endpointOverride(localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3))
+            .region(Region.US_EAST_1)
+            .forcePathStyle(true)
+            .build();
         log.info("S3 Client setup completed with endpoint: {}", localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3));
     }
 
     @BeforeEach
     public void setup() throws Exception {
         try {
+            log.info("List buckets...");
+            s3Client.listBuckets().buckets().forEach(System.out::println);
+            log.info("List buckets successfully");
+
             // Create bucket
-            log.info("Creating bucket 'test-bucket'...");
+            log.info("Creating bucket 'sample-bucket'...");
             s3Client.createBucket(CreateBucketRequest.builder().bucket("sample-bucket").build());
             log.info("Bucket 'sample-bucket' created successfully.");
 
@@ -80,9 +87,9 @@ public class LocalStackIT {
 
     private void logFileContentFromS3(String bucketName, String key) throws Exception {
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(bucketName)
-                .key(key)
-                .build();
+            .bucket(bucketName)
+            .key(key)
+            .build();
 
         // Download the file from S3
         byte[] content = s3Client.getObject(getObjectRequest).readAllBytes();
@@ -97,5 +104,4 @@ public class LocalStackIT {
         // Log the content of the file from S3
         logFileContentFromS3("sample-bucket", "sample.csv");
     }
-
 }
