@@ -66,6 +66,7 @@ public class LocalStackIT {
                 .bucket("sample-bucket")
                 .key("sample.csv")
                 .build(), Paths.get("src/test/resources/sample.csv"));
+            log.info("File 'sample.csv' uploaded successfully to bucket 'sample-bucket'.");
         } catch(S3Exception e) {
             log.error("S3Exception: {}", e.awsErrorDetails().errorMessage());
         } catch (Exception e) {
