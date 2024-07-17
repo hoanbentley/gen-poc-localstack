@@ -33,8 +33,8 @@ public class LocalStackIT {
     @Container
     public static LocalStackContainer localStackContainer = new LocalStackContainer(DockerImageName.parse("localstack/localstack:latest"))
             .withServices(LocalStackContainer.Service.S3)
-            .waitingFor(Wait.forLogMessage(".*Ready.*", 1))
-            .withStartupTimeout(Duration.ofMinutes(3));
+            .withExposedPorts(4566)
+            .waitingFor(Wait.forLogMessage(".*Ready.*", 1));
 
     private static S3Client s3Client;
 
@@ -54,6 +54,7 @@ public class LocalStackIT {
     public void setup() throws Exception {
         try {
             // Create bucket
+            log.info("Creating bucket 'test-bucket'...");
             s3Client.createBucket(CreateBucketRequest.builder().bucket("sample-bucket").build());
             log.info("Bucket 'sample-bucket' created successfully.");
 
