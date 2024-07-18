@@ -77,7 +77,7 @@ public class LocalStackIT {
 
         s3Client = S3Client
             .builder()
-            .endpointOverride(localStackContainer.getEndpoint())
+            .endpointOverride(localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3))
             .credentialsProvider(
                 StaticCredentialsProvider.create(
                     AwsBasicCredentials.create(localStackContainer.getAccessKey(), localStackContainer.getSecretKey())
