@@ -47,8 +47,7 @@ public class LocalStackIT {
         .waitingFor(Wait.forLogMessage(".*Ready.*", 1))
         .withStartupTimeout(Duration.ofMinutes(5));
 
-    //private static S3Client s3Client;
-    private static AmazonS3 s3Client;
+    private static S3Client s3Client;
     private static final AwsBasicCredentials awsCreds = AwsBasicCredentials.create("dev", "dev");
 
     @BeforeAll
@@ -81,7 +80,7 @@ public class LocalStackIT {
             .forcePathStyle(true)
             .build();*/
 
-        /*s3Client = S3Client
+        s3Client = S3Client
             .builder()
             .endpointOverride(localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3))
             .credentialsProvider(
@@ -90,23 +89,7 @@ public class LocalStackIT {
                 )
             )
             .region(Region.of(localStackContainer.getRegion()))
-            .build();*/
-
-         s3Client = AmazonS3ClientBuilder
-            .standard()
-            .withEndpointConfiguration(
-                new AwsClientBuilder.EndpointConfiguration(
-                    localStackContainer.getEndpoint().toString(),
-                    localStackContainer.getRegion()
-                )
-            )
-            .withCredentials(
-                new AWSStaticCredentialsProvider(
-                    new BasicAWSCredentials(localStackContainer.getAccessKey(), localStackContainer.getSecretKey())
-                )
-            )
             .build();
-
 
         log.info("S3 Client setup completed with endpoint: {}", localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3));
 
@@ -150,7 +133,7 @@ public class LocalStackIT {
     public void setup() throws Exception {
         try {
             log.info("Listing buckets...");
-            s3Client.listBuckets().forEach(bucket -> log.info("Bucket: {}", bucket.getName()));
+            s3Client.listBuckets().buckets().forEach(bucket -> log.info("Bucket: {}", bucket.name()));
             log.info("Buckets listed successfully.");
         } catch(S3Exception e) {
             log.error("S3Exception: {}", e.awsErrorDetails().errorMessage());
