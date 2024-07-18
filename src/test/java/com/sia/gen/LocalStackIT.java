@@ -12,12 +12,16 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.utils.AttributeMap;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -47,6 +51,14 @@ public class LocalStackIT {
         log.info("LocalStack logs:\n{}", localStackLogs);
         log.info("LocalStack container started.");
 
+        final AttributeMap attributeMap = AttributeMap.builder()
+            .put(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, true)
+            .build();
+
+        final SdkHttpClient sdkHttpClient = new DefaultSdkHttpClientBuilder().buildWithDefaults(attributeMap);
+        log.info("setUpLocalStack AttributeMap {}", attributeMap);
+        log.info("setUpLocalStack sdkHttpClient {}", sdkHttpClient);
+
         s3Client = S3Client.builder()
             .credentialsProvider(StaticCredentialsProvider.create(awsCreds))
             .endpointOverride(localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3))
@@ -54,6 +66,7 @@ public class LocalStackIT {
             .forcePathStyle(true)
             .build();
         log.info("S3 Client setup completed with endpoint: {}", localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3));
+
     }
 
     @BeforeEach
