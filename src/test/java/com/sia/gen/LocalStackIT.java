@@ -137,6 +137,20 @@ public class LocalStackIT {
             s3Client.createBucket(CreateBucketRequest.builder().bucket("sample-bucket").build());
             log.info("Bucket 'sample-bucket' created successfully.");
 
+            // Verify bucket creation
+            boolean bucketExists = s3Client.listBuckets().buckets().stream()
+                .anyMatch(bucket -> bucket.name().equals("sample-bucket"));
+            assertTrue(bucketExists, "Bucket 'sample-bucket' should exist");
+
+            // Upload a test CSV file to S3
+            log.info("Uploading file 'sample.csv' to bucket 'sample-bucket'...");
+            byte[] content = Files.readAllBytes(Paths.get("src/test/resources/sample.csv"));
+            s3Client.putObject(PutObjectRequest.builder()
+                .bucket("sample-bucket")
+                .key("sample.csv")
+                .build(), Paths.get("src/test/resources/sample.csv"));
+            log.info("File 'sample.csv' uploaded successfully to bucket 'sample-bucket'.");
+
         } catch(S3Exception e) {
             log.error("S3Exception: {}", e.awsErrorDetails().errorMessage());
         } catch (Exception e) {
@@ -145,7 +159,7 @@ public class LocalStackIT {
     }
 
     private void logFileContentFromS3(String bucketName, String key) throws Exception {
-        /*GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
             .bucket(bucketName)
             .key(key)
             .build();
@@ -155,12 +169,12 @@ public class LocalStackIT {
 
         // Convert the byte array to a string and log it
         String fileContent = new String(content);
-        log.info("Content of the file from S3 ({}):\n{}", key, fileContent);*/
+        log.info("Content of the file from S3 ({}):\n{}", key, fileContent);
     }
 
     @Test
     public void testLocalStackIntegration() throws Exception {
         // Log the content of the file from S3
-        //logFileContentFromS3("sample-bucket", "sample.csv");
+        logFileContentFromS3("sample-bucket", "sample.csv");
     }
 }
