@@ -20,7 +20,12 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.utils.AttributeMap;
+
+import java.net.http.HttpClient;
 import java.time.Duration;
+import java.net.URI;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 @SpringBootTest
 @Slf4j
@@ -68,6 +73,9 @@ public class LocalStackIT {
 
         log.info("S3 Client setup completed with endpoint: {}", localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3));
 
+        // Verify LocalStack S3 service using HttpClient (similar to curl)
+        verifyLocalStackS3();
+
     }
 
     @BeforeEach
@@ -91,5 +99,22 @@ public class LocalStackIT {
     @Test
     public void testLocalStackIntegration() throws Exception {
 
+    }
+
+    private static void verifyLocalStackS3() {
+        try {
+            String endpoint = localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3).toString();
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(endpoint + "/"))
+                .GET()
+                .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            log.info("HTTP Status Code: {}", response.statusCode());
+            log.info("Response Body: {}", response.body());
+        } catch (Exception e) {
+            log.error("Exception during HttpClient request: ", e);
+        }
     }
 }
