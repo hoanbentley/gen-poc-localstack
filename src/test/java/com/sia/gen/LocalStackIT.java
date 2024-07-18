@@ -37,6 +37,7 @@ public class LocalStackIT {
     @Container
     public static LocalStackContainer localStackContainer = new LocalStackContainer(DockerImageName.parse("localstack/localstack:latest"))
         .withServices(LocalStackContainer.Service.S3)
+        .withExposedPorts(4566)
         .withEnv("SKIP_SSL_CERT_DOWNLOAD", "1")
         .withEnv("DEBUG", "1")
         .waitingFor(Wait.forLogMessage(".*Ready.*", 1))
@@ -77,7 +78,7 @@ public class LocalStackIT {
 
         s3Client = S3Client
             .builder()
-            .endpointOverride(localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3))
+            .endpointOverride(localStackContainer.getEndpoint())
             .credentialsProvider(
                 StaticCredentialsProvider.create(
                     AwsBasicCredentials.create(localStackContainer.getAccessKey(), localStackContainer.getSecretKey())
