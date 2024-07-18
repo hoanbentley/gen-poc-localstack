@@ -43,6 +43,8 @@ public class LocalStackIT {
     public static void setUpLocalStack() {
         log.info("Setting up LocalStack container...");
         localStackContainer.start();
+        String localStackLogs = localStackContainer.getLogs();
+        log.info("LocalStack logs:\n{}", localStackLogs);
         log.info("LocalStack container started.");
 
         log.info("Using AWS Credentials - Access Key: {}, Secret Key: {}", awsCreds.accessKeyId(), awsCreds.secretAccessKey());
@@ -83,6 +85,8 @@ public class LocalStackIT {
             log.info("File 'sample.csv' uploaded successfully to bucket 'sample-bucket'.");
         } catch(S3Exception e) {
             log.error("S3Exception: {}", e.awsErrorDetails().errorMessage());
+            log.error("Error Code: {}", e.awsErrorDetails().errorCode());
+            log.error("Service Name: {}", e.awsErrorDetails().serviceName());
         } catch (Exception e) {
             log.error("Exception during setup: ", e);
         }
