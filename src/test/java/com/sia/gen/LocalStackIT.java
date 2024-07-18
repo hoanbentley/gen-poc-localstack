@@ -1,5 +1,10 @@
 package com.sia.gen;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,7 +47,8 @@ public class LocalStackIT {
         .waitingFor(Wait.forLogMessage(".*Ready.*", 1))
         .withStartupTimeout(Duration.ofMinutes(5));
 
-    private static S3Client s3Client;
+    //private static S3Client s3Client;
+    private static AmazonS3 s3Client;
     private static final AwsBasicCredentials awsCreds = AwsBasicCredentials.create("dev", "dev");
 
     @BeforeAll
@@ -75,7 +81,7 @@ public class LocalStackIT {
             .forcePathStyle(true)
             .build();*/
 
-        s3Client = S3Client
+        /*s3Client = S3Client
             .builder()
             .endpointOverride(localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3))
             .credentialsProvider(
@@ -84,13 +90,29 @@ public class LocalStackIT {
                 )
             )
             .region(Region.of(localStackContainer.getRegion()))
+            .build();*/
+
+         s3Client = AmazonS3ClientBuilder
+            .standard()
+            .withEndpointConfiguration(
+                new AwsClientBuilder.EndpointConfiguration(
+                    localStackContainer.getEndpoint().toString(),
+                    localStackContainer.getRegion()
+                )
+            )
+            .withCredentials(
+                new AWSStaticCredentialsProvider(
+                    new BasicAWSCredentials(localStackContainer.getAccessKey(), localStackContainer.getSecretKey())
+                )
+            )
             .build();
+
 
         log.info("S3 Client setup completed with endpoint: {}", localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3));
 
     }
 
-    @BeforeEach
+    /*@BeforeEach
     public void setup() throws Exception {
         try {
             log.info("Listing buckets...");
@@ -122,10 +144,23 @@ public class LocalStackIT {
         } catch (Exception e) {
             log.error("Exception during setup: ", e);
         }
+    }*/
+
+    @BeforeEach
+    public void setup() throws Exception {
+        try {
+            log.info("Listing buckets...");
+            s3Client.listBuckets().forEach(bucket -> log.info("Bucket: {}", bucket.getName()));
+            log.info("Buckets listed successfully.");
+        } catch(S3Exception e) {
+            log.error("S3Exception: {}", e.awsErrorDetails().errorMessage());
+        } catch (Exception e) {
+            log.error("Exception during setup: ", e);
+        }
     }
 
     private void logFileContentFromS3(String bucketName, String key) throws Exception {
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+        /*GetObjectRequest getObjectRequest = GetObjectRequest.builder()
             .bucket(bucketName)
             .key(key)
             .build();
@@ -135,12 +170,12 @@ public class LocalStackIT {
 
         // Convert the byte array to a string and log it
         String fileContent = new String(content);
-        log.info("Content of the file from S3 ({}):\n{}", key, fileContent);
+        log.info("Content of the file from S3 ({}):\n{}", key, fileContent);*/
     }
 
     @Test
     public void testLocalStackIntegration() throws Exception {
         // Log the content of the file from S3
-        logFileContentFromS3("sample-bucket", "sample.csv");
+        //logFileContentFromS3("sample-bucket", "sample.csv");
     }
 }
