@@ -37,15 +37,18 @@ public class LocalStackIT {
         .withStartupTimeout(Duration.ofMinutes(5));
 
     private static S3Client s3Client;
+    private static final AwsBasicCredentials awsCreds = AwsBasicCredentials.create("dev", "dev");
 
     @BeforeAll
     public static void setUpLocalStack() {
         log.info("Setting up LocalStack container...");
         localStackContainer.start();
         log.info("LocalStack container started.");
+
+        log.info("Using AWS Credentials - Access Key: {}, Secret Key: {}", awsCreds.accessKeyId(), awsCreds.secretAccessKey());
+
         s3Client = S3Client.builder()
-            .credentialsProvider(StaticCredentialsProvider.create(
-                AwsBasicCredentials.create("dev", "dev")))
+            .credentialsProvider(StaticCredentialsProvider.create(awsCreds))
             .endpointOverride(localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3))
             .region(Region.US_EAST_1)
             .forcePathStyle(true)
@@ -56,9 +59,9 @@ public class LocalStackIT {
     @BeforeEach
     public void setup() throws Exception {
         try {
-            log.info("List buckets...");
-            s3Client.listBuckets().buckets().forEach(System.out::println);
-            log.info("List buckets successfully");
+            log.info("Listing buckets...");
+            s3Client.listBuckets().buckets().forEach(bucket -> log.info("Bucket: {}", bucket.name()));
+            log.info("Buckets listed successfully.");
 
             // Create bucket
             log.info("Creating bucket 'sample-bucket'...");
@@ -71,6 +74,7 @@ public class LocalStackIT {
             assertTrue(bucketExists, "Bucket 'sample-bucket' should exist");
 
             // Upload a test CSV file to S3
+            log.info("Uploading file 'sample.csv' to bucket 'sample-bucket'...");
             byte[] content = Files.readAllBytes(Paths.get("src/test/resources/sample.csv"));
             s3Client.putObject(PutObjectRequest.builder()
                 .bucket("sample-bucket")
