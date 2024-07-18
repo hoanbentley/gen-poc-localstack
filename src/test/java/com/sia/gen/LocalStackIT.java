@@ -131,6 +131,12 @@ public class LocalStackIT {
             log.info("Listing buckets...");
             s3Client.listBuckets().buckets().forEach(bucket -> log.info("Bucket: {}", bucket.name()));
             log.info("Buckets listed successfully.");
+
+            // Create bucket
+            log.info("Creating bucket 'sample-bucket'...");
+            s3Client.createBucket(CreateBucketRequest.builder().bucket("sample-bucket").build());
+            log.info("Bucket 'sample-bucket' created successfully.");
+
         } catch(S3Exception e) {
             log.error("S3Exception: {}", e.awsErrorDetails().errorMessage());
         } catch (Exception e) {
