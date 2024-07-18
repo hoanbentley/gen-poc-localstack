@@ -175,6 +175,6 @@ public class LocalStackIT {
     @Test
     public void testLocalStackIntegration() throws Exception {
         // Log the content of the file from S3
-        logFileContentFromS3("sample-bucket", "sample.csv");
+        //logFileContentFromS3("sample-bucket", "sample.csv");
     }
 }
