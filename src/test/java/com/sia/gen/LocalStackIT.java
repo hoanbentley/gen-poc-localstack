@@ -37,6 +37,8 @@ public class LocalStackIT {
     @Container
     public static LocalStackContainer localStackContainer = new LocalStackContainer(DockerImageName.parse("localstack/localstack:latest"))
         .withServices(LocalStackContainer.Service.S3)
+        .withEnv("SKIP_SSL_CERT_DOWNLOAD", "1")
+        .withEnv("DEBUG", "1")
         .waitingFor(Wait.forLogMessage(".*Ready.*", 1))
         .withStartupTimeout(Duration.ofMinutes(5));
 
@@ -60,11 +62,15 @@ public class LocalStackIT {
         log.info("setUpLocalStack sdkHttpClient {}", sdkHttpClient);
 
         s3Client = S3Client.builder()
+            .httpClient(sdkHttpClient)
+            .build();
+
+        /*s3Client = S3Client.builder()
             .credentialsProvider(StaticCredentialsProvider.create(awsCreds))
             .endpointOverride(localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3))
             .region(Region.US_EAST_1)
             .forcePathStyle(true)
-            .build();
+            .build();*/
         log.info("S3 Client setup completed with endpoint: {}", localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3));
 
     }
