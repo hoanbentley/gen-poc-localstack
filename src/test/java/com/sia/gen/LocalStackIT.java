@@ -69,6 +69,7 @@ public class LocalStackIT {
             )
             .region(Region.of(localStackContainer.getRegion()))
             .httpClient(sdkHttpClient)
+            .forcePathStyle(true)
             .build();
 
         log.info("S3 Client setup completed with endpoint: {}", localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3));
