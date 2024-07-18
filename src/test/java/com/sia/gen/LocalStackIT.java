@@ -47,8 +47,6 @@ public class LocalStackIT {
         log.info("LocalStack logs:\n{}", localStackLogs);
         log.info("LocalStack container started.");
 
-        log.info("Using AWS Credentials - Access Key: {}, Secret Key: {}", awsCreds.accessKeyId(), awsCreds.secretAccessKey());
-
         s3Client = S3Client.builder()
             .credentialsProvider(StaticCredentialsProvider.create(awsCreds))
             .endpointOverride(localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3))
