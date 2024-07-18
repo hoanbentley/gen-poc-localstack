@@ -65,12 +65,12 @@ public class LocalStackIT {
             .httpClient(sdkHttpClient)
             .build();
 
-        /*s3Client = S3Client.builder()
+        s3Client = S3Client.builder()
             .credentialsProvider(StaticCredentialsProvider.create(awsCreds))
             .endpointOverride(localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3))
             .region(Region.US_EAST_1)
             .forcePathStyle(true)
-            .build();*/
+            .build();
         log.info("S3 Client setup completed with endpoint: {}", localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3));
 
     }
