@@ -18,16 +18,9 @@ import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.utils.AttributeMap;
-
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.Duration;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @Slf4j
@@ -44,7 +37,6 @@ public class LocalStackIT {
         .withStartupTimeout(Duration.ofMinutes(5));
 
     private static S3Client s3Client;
-    private static final AwsBasicCredentials awsCreds = AwsBasicCredentials.create("dev", "dev");
 
     @BeforeAll
     public static void setUpLocalStack() {
@@ -62,20 +54,6 @@ public class LocalStackIT {
         log.info("setUpLocalStack AttributeMap {}", attributeMap);
         log.info("setUpLocalStack sdkHttpClient {}", sdkHttpClient);
 
-        /*s3Client = S3Client.builder()
-            .credentialsProvider(StaticCredentialsProvider.create(awsCreds))
-            .endpointOverride(localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3))
-            .region(Region.US_EAST_1)
-            .httpClient(sdkHttpClient)
-            .build();*/
-
-        /*s3Client = S3Client.builder()
-            .credentialsProvider(StaticCredentialsProvider.create(awsCreds))
-            .endpointOverride(localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3))
-            .region(Region.US_EAST_1)
-            .forcePathStyle(true)
-            .build();*/
-
         s3Client = S3Client
             .builder()
             .endpointOverride(localStackContainer.getEndpoint())
@@ -85,96 +63,33 @@ public class LocalStackIT {
                 )
             )
             .region(Region.of(localStackContainer.getRegion()))
+            .httpClient(sdkHttpClient)
             .build();
 
         log.info("S3 Client setup completed with endpoint: {}", localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3));
 
     }
 
-    /*@BeforeEach
-    public void setup() throws Exception {
-        try {
-            log.info("Listing buckets...");
-            s3Client.listBuckets().buckets().forEach(bucket -> log.info("Bucket: {}", bucket.name()));
-            log.info("Buckets listed successfully.");
-
-            // Create bucket
-            log.info("Creating bucket 'sample-bucket'...");
-            s3Client.createBucket(CreateBucketRequest.builder().bucket("sample-bucket").build());
-            log.info("Bucket 'sample-bucket' created successfully.");
-
-            // Verify bucket creation
-            boolean bucketExists = s3Client.listBuckets().buckets().stream()
-                .anyMatch(bucket -> bucket.name().equals("sample-bucket"));
-            assertTrue(bucketExists, "Bucket 'sample-bucket' should exist");
-
-            // Upload a test CSV file to S3
-            log.info("Uploading file 'sample.csv' to bucket 'sample-bucket'...");
-            byte[] content = Files.readAllBytes(Paths.get("src/test/resources/sample.csv"));
-            s3Client.putObject(PutObjectRequest.builder()
-                .bucket("sample-bucket")
-                .key("sample.csv")
-                .build(), Paths.get("src/test/resources/sample.csv"));
-            log.info("File 'sample.csv' uploaded successfully to bucket 'sample-bucket'.");
-        } catch(S3Exception e) {
-            log.error("S3Exception: {}", e.awsErrorDetails().errorMessage());
-            log.error("Error Code: {}", e.awsErrorDetails().errorCode());
-            log.error("Service Name: {}", e.awsErrorDetails().serviceName());
-        } catch (Exception e) {
-            log.error("Exception during setup: ", e);
-        }
-    }*/
-
     @BeforeEach
     public void setup() throws Exception {
         try {
-            log.info("Listing buckets...");
-            s3Client.listBuckets().buckets().forEach(bucket -> log.info("Bucket: {}", bucket.name()));
-            log.info("Buckets listed successfully.");
-
             // Create bucket
             log.info("Creating bucket 'sample-bucket'...");
             s3Client.createBucket(CreateBucketRequest.builder().bucket("sample-bucket").build());
             log.info("Bucket 'sample-bucket' created successfully.");
 
-            // Verify bucket creation
-            boolean bucketExists = s3Client.listBuckets().buckets().stream()
-                .anyMatch(bucket -> bucket.name().equals("sample-bucket"));
-            assertTrue(bucketExists, "Bucket 'sample-bucket' should exist");
-
-            // Upload a test CSV file to S3
-            log.info("Uploading file 'sample.csv' to bucket 'sample-bucket'...");
-            byte[] content = Files.readAllBytes(Paths.get("src/test/resources/sample.csv"));
-            s3Client.putObject(PutObjectRequest.builder()
-                .bucket("sample-bucket")
-                .key("sample.csv")
-                .build(), Paths.get("src/test/resources/sample.csv"));
-            log.info("File 'sample.csv' uploaded successfully to bucket 'sample-bucket'.");
-
         } catch(S3Exception e) {
             log.error("S3Exception: {}", e.awsErrorDetails().errorMessage());
+            log.error("HTTP Status Code: {}", e.statusCode());
+            log.error("AWS Error Code: {}", e.awsErrorDetails().errorCode());
+            log.error("Request ID: {}", e.requestId());
         } catch (Exception e) {
             log.error("Exception during setup: ", e);
         }
-    }
-
-    private void logFileContentFromS3(String bucketName, String key) throws Exception {
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-            .bucket(bucketName)
-            .key(key)
-            .build();
-
-        // Download the file from S3
-        byte[] content = s3Client.getObject(getObjectRequest).readAllBytes();
-
-        // Convert the byte array to a string and log it
-        String fileContent = new String(content);
-        log.info("Content of the file from S3 ({}):\n{}", key, fileContent);
     }
 
     @Test
     public void testLocalStackIntegration() throws Exception {
-        // Log the content of the file from S3
-        //logFileContentFromS3("sample-bucket", "sample.csv");
+
     }
 }
