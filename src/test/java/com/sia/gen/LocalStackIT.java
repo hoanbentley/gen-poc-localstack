@@ -84,6 +84,8 @@ public class LocalStackIT {
 
         log.info("S3 Client setup completed with endpoint: {}", localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3));
 
+        // Verify and create bucket in LocalStack S3 using HttpClient (similar to curl)
+        verifyAndCreateBucketInLocalStack();
         // Verify LocalStack S3 service using HttpClient (similar to curl)
         verifyLocalStackS3();
 
@@ -130,6 +132,31 @@ public class LocalStackIT {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             log.info("HTTP Status Code: {}", response.statusCode());
             log.info("Response Body: {}", response.body());
+        } catch (Exception e) {
+            log.error("Exception during HttpClient request: ", e);
+        }
+    }
+
+    private static void verifyAndCreateBucketInLocalStack() {
+        try {
+            String endpoint = localStackContainer.getEndpointOverride(LocalStackContainer.Service.S3).toString();
+            String bucketName = "sample-bucket";
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(endpoint + "/" + bucketName))
+                .PUT(HttpRequest.BodyPublishers.noBody())
+                .header("x-amz-acl", "public-read")
+                .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            log.info("HTTP Status Code: {}", response.statusCode());
+            log.info("Response Body: {}", response.body());
+
+            if (response.statusCode() == 200) {
+                log.info("Bucket '{}' created successfully.", bucketName);
+            } else {
+                log.error("Failed to create bucket '{}'. HTTP Status Code: {}", bucketName, response.statusCode());
+            }
         } catch (Exception e) {
             log.error("Exception during HttpClient request: ", e);
         }
