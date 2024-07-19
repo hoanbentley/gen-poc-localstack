@@ -38,7 +38,7 @@ import java.net.http.HttpResponse;
 public class LocalStackIT {
 
     @Container
-    public static LocalStackContainer localStackContainer = new LocalStackContainer(DockerImageName.parse("localstack/localstack:1.4.0"))
+    public static LocalStackContainer localStackContainer = new LocalStackContainer(DockerImageName.parse("localstack/localstack:2.2.0"))
         .withServices(LocalStackContainer.Service.S3)
         .withEnv("SKIP_SSL_CERT_DOWNLOAD", "1")
         .withEnv("DEBUG", "1")
