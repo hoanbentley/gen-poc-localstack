@@ -20,6 +20,8 @@ import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.BucketCannedACL;
+import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -94,7 +96,13 @@ public class LocalStackIT {
         try {
             // Create bucket
             log.info("Creating bucket 'sample-bucket'...");
-            s3Client.createBucket(CreateBucketRequest.builder().bucket("sample-bucket").build());
+            s3Client.createBucket(CreateBucketRequest.builder()
+                .bucket("sample-bucket")
+                .acl(BucketCannedACL.PUBLIC_READ)
+                .createBucketConfiguration(CreateBucketConfiguration.builder()
+                    .locationConstraint(localStackContainer.getRegion())
+                    .build())
+                .build());
             log.info("Bucket 'sample-bucket' created successfully.");
 
         } catch(S3Exception e) {
