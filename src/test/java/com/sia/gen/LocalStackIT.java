@@ -76,7 +76,6 @@ public class LocalStackIT {
             .overrideConfiguration(
                 ClientOverrideConfiguration.builder()
                     .retryPolicy(r -> r.numRetries(0))
-                    //.putAdvancedOption(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, true)
                     .build()
             )
             .forcePathStyle(true)
