@@ -71,10 +71,8 @@ public class LocalStackIT {
                     AwsBasicCredentials.create(localStackContainer.getAccessKey(), localStackContainer.getSecretKey())
                 )
             )
+            .httpClient(sdkHttpClient)
             .region(Region.of(localStackContainer.getRegion()))
-            .httpClient(ApacheHttpClient.builder()
-                .useIdleConnectionReaper(false)
-                .build())
             .overrideConfiguration(
                 ClientOverrideConfiguration.builder()
                     .retryPolicy(r -> r.numRetries(0))
