@@ -17,6 +17,7 @@ import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -37,7 +38,6 @@ public class LocalStackIT {
     @Container
     public static LocalStackContainer localStackContainer = new LocalStackContainer(DockerImageName.parse("localstack/localstack:latest"))
         .withServices(LocalStackContainer.Service.S3)
-        .withExposedPorts(4566)
         .withEnv("SKIP_SSL_CERT_DOWNLOAD", "1")
         .withEnv("DEBUG", "1")
         .waitingFor(Wait.forLogMessage(".*Ready.*", 1))
@@ -70,10 +70,13 @@ public class LocalStackIT {
                 )
             )
             .region(Region.of(localStackContainer.getRegion()))
-            .httpClient(sdkHttpClient)
+            .httpClient(ApacheHttpClient.builder()
+                .useIdleConnectionReaper(false)
+                .build())
             .overrideConfiguration(
                 ClientOverrideConfiguration.builder()
                     .retryPolicy(r -> r.numRetries(0))
+                    //.putAdvancedOption(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, true)
                     .build()
             )
             .forcePathStyle(true)
