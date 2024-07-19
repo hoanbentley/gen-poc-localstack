@@ -12,6 +12,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
@@ -69,6 +71,11 @@ public class LocalStackIT {
             )
             .region(Region.of(localStackContainer.getRegion()))
             .httpClient(sdkHttpClient)
+            .overrideConfiguration(
+                ClientOverrideConfiguration.builder()
+                    .retryPolicy(r -> r.numRetries(0))
+                    .build()
+            )
             .forcePathStyle(true)
             .build();
 
